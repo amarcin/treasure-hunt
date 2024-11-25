@@ -19,43 +19,48 @@ st.markdown("""
         border-radius: 10px;
         border: 2px solid #8b4513;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .puzzle-image {
+        max-width: 100%;
+        border-radius: 8px;
+        border: 3px solid #8b4513;
+        margin: 10px 0;
     }
     </style>
     """, unsafe_allow_html=True)
 
-def create_rotating_compass(angle):
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(6, 6))
+def compass_puzzle():
+    st.markdown("### 🧭 The Ancient Compass")
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(4, 4))
+    angle = st.slider("Rotate the compass", 0, 360, 0)
+    
     directions = ['N', 'E', 'S', 'W']
     angles = np.deg2rad([90, 0, 270, 180])
     
     ax.set_theta_direction(-1)
     ax.set_theta_zero_location('N')
+    ax.grid(True, alpha=0.3)
+    ax.set_facecolor('#f5e6d3')
     
-    ax.scatter(angles, [1.3]*4, color='black')
+    ax.scatter(angles, [1.3]*4, color='#8b4513')
     for d, a in zip(directions, angles):
-        ax.text(a, 1.7, d, ha='center', va='center', fontsize=12, fontweight='bold')
+        ax.text(a, 1.7, d, ha='center', va='center', fontsize=12, fontweight='bold', color='#462f03')
     
     arrow_angle = np.deg2rad(angle)
-    ax.arrow(arrow_angle, 0, 0, 0.8, alpha=0.5, width=0.1, 
-             head_width=0.2, head_length=0.2, fc='red', ec='red')
+    ax.arrow(arrow_angle, 0, 0, 0.8, alpha=0.8, width=0.1, 
+             head_width=0.2, head_length=0.2, fc='#8b4513', ec='#8b4513')
     
     ax.set_rticks([])
     plt.tight_layout()
-    return fig
-
-def compass_puzzle():
-    st.markdown("### 🧭 The Ancient Compass")
-    col1, col2 = st.columns([2,1])
-    with col1:
-        angle = st.slider("Rotate the compass", 0, 360, 0)
-        fig = create_rotating_compass(angle)
-        st.pyplot(fig)
-    with col2:
-        st.write("Align the compass with the secret bearing...")
-        return angle == 42
+    st.pyplot(fig)
+    
+    return angle == 42
 
 def constellation_puzzle():
     st.markdown("### ⭐ Navigate by the Stars")
+    st.image("https://plus.unsplash.com/premium_photo-1721254059354-ae91139fdfef?q=80&w=3132&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="Ancient Star Chart", use_column_width=True)
     st.write("The ancient mariners used these stars to guide their way home.")
     stars_selected = st.multiselect(
         "Select the stars of the Ancient Mariner's Path",
@@ -65,17 +70,39 @@ def constellation_puzzle():
 
 def sundial_puzzle():
     st.markdown("### ☀️ The Mystical Sundial")
-    st.write("The ancient sundial holds a secret time...")
+    
+    fig, ax = plt.subplots(figsize=(6, 6))
+    circle = plt.Circle((0.5, 0.5), 0.4, fill=False, color='#8b4513')
+    ax.add_artist(circle)
+    
+    for hour in range(1, 13):
+        angle = np.deg2rad(hour * 30 - 90)
+        x = 0.5 + 0.35 * np.cos(angle)
+        y = 0.5 + 0.35 * np.sin(angle)
+        ax.text(x, y, str(hour), ha='center', va='center', fontsize=12)
+    
     hour = st.number_input("Set the hour", 1, 12, 1)
     minute = st.slider("Set the minute", 0, 59, 0)
+    
+    angle = np.deg2rad((hour + minute/60) * 30 - 90)
+    ax.plot([0.5, 0.5 + 0.3 * np.cos(angle)],
+            [0.5, 0.5 + 0.3 * np.sin(angle)], 
+            color='#8b4513', linewidth=2)
+    
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis('off')
+    plt.tight_layout()
+    st.pyplot(fig)
+    
     return hour == 7 and minute == 15
 
 def morse_code_puzzle():
     st.markdown("### 📡 The Pirate's Code")
+    st.image("https://plus.unsplash.com/premium_photo-1667238624718-5c5d5deb6829?q=80&w=2737&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="Ancient Morse Code Chart", use_column_width=True)
     message = ".--.  ..  .-.  .-  -  ."
     st.write("A mysterious message has been intercepted:")
     st.markdown(f"**{message}**")
-    st.write("Hint: Each letter is separated by a space")
     answer = st.text_input("Your answer:").upper()
     return answer == "PIRATE"
 
@@ -88,18 +115,25 @@ def riddle_puzzle():
     I have roads, but no cars.
     What am I?
     """
-    st.markdown(f"**{riddle}**")
+    st.write(riddle)
+    st.image("https://images.unsplash.com/photo-1520299607509-dcd935f9a839?q=80&w=3131&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="An Old Parchment", use_column_width=True)
     answer = st.text_input("Your answer:").lower()
     return answer == "map"
 
 def treasure_map_puzzle():
     st.markdown("### 🗺️ The Treasure Map")
-    st.write("Find the X that marks the spot!")
-    col1, col2 = st.columns([1,1])
-    with col1:
-        x = st.slider("X coordinate", 0, 100, 50)
-    with col2:
-        y = st.slider("Y coordinate", 0, 100, 50)
+    
+    fig, ax = plt.subplots(figsize=(8, 8))
+    # map_img = plt.imread("https://images.unsplash.com/photo-1520299607509-dcd935f9a839")
+    # ax.imshow(map_img)
+    
+    x = st.slider("X coordinate", 0, 100, 50)
+    y = st.slider("Y coordinate", 0, 100, 50)
+    
+    ax.scatter(x, y, color='red', marker='x', s=100)
+    ax.grid(True, alpha=0.3)
+    st.pyplot(fig)
+    
     return x == 73 and y == 27
 
 def cryptogram_puzzle():
@@ -107,12 +141,12 @@ def cryptogram_puzzle():
     encrypted = "YZNFHZM GIZMFHIZ"
     st.write("The captain left behind this encrypted message:")
     st.markdown(f"**{encrypted}**")
-    st.write("Hint: The letters have been shifted...")
     answer = st.text_input("Decrypt the message:").upper()
     return answer == "TREASURE LOCATION"
 
 def flag_sequence_puzzle():
     st.markdown("### 🏴‍☠️ The Pirate Flag Sequence")
+    st.image("https://images.unsplash.com/photo-1652447275071-4bf852aebdc5?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="Famous Pirate Flags", use_column_width=True)
     st.write("Arrange these famous pirate flags in alphabetical order!")
     flags = ["Jolly Roger", "Black Bart", "Calico Jack", "Edward England"]
     sequence = st.multiselect("Select the flags in order:", flags)
@@ -121,6 +155,7 @@ def flag_sequence_puzzle():
 
 def knot_puzzle():
     st.markdown("### ⚓ The Sailor's Knot")
+    st.image("https://images.unsplash.com/photo-1618588932782-d31006819d93?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="Traditional Sailor's Knots", use_column_width=True)
     st.write("Every good sailor needs to know their knots!")
     knots = ["Bowline", "Clove Hitch", "Sheet Bend", "Figure Eight"]
     selected_knot = st.selectbox("Select the knot that can create a fixed loop:", knots)
@@ -148,17 +183,18 @@ def main():
         st.write(f"Challenges Completed: {st.session_state.current_stage}/{len(stages)}")
         st.markdown('</div>', unsafe_allow_html=True)
         
-        # Admin Mode
         st.markdown("---")
-        if st.checkbox("🔑 Admin Mode"):
-            selected_stage = st.selectbox(
-                "Jump to puzzle:",
-                options=range(len(stages)),
-                format_func=lambda x: stages[x]["name"]
-            )
-            if st.button("Jump"):
-                st.session_state.current_stage = selected_stage
-                st.rerun()
+        admin_expander = st.expander("🔑 Admin Mode")
+        with admin_expander:
+            password = st.text_input("Password:", type="password")
+            if password == "admin":
+                st.write("Select a puzzle to jump to:")
+                cols = st.columns(3)
+                for i, stage in enumerate(stages):
+                    with cols[i % 3]:
+                        if st.button(f"Puzzle {i+1}"):
+                            st.session_state.current_stage = i
+                            st.rerun()
     
     if st.session_state.current_stage >= len(stages):
         st.success("🎉 Congratulations! You've found the treasure!")
