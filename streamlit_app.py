@@ -1,90 +1,117 @@
+import random
 import streamlit as st
 import numpy as np
-from PIL import Image
 import matplotlib.pyplot as plt
-from datetime import datetime
+from streamlit_lottie import st_lottie
+import json
+import requests
+import urllib.request
+from PIL import Image
 
-st.set_page_config(page_title="Pirate's Treasury", layout="wide")
-if 'current_stage' not in st.session_state:
-    st.session_state.current_stage = 0
+st.set_page_config(page_title="Pirate's Treasure", layout="wide")
 
 st.markdown("""
-    <style>
-    .stApp {background-color: #f5e6d3;}
-    .treasure-text {font-family: 'Pirata One', serif; color: #462f03;}
-    .stProgress > div > div {background-color: #c17f59 !important;}
-    .log-container {
-        background-color: #deb887;
-        padding: 20px;
+<style>
+    .stPlotlyChart, .stPlot {
         border-radius: 10px;
-        border: 2px solid #8b4513;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
+        overflow: hidden;
     }
-    .puzzle-image {
-        max-width: 100%;
-        border-radius: 8px;
-        border: 3px solid #8b4513;
-        margin: 10px 0;
+    iframe {
+        border-radius: 10px;
     }
-    </style>
-    """, unsafe_allow_html=True)
+</style>
+""", unsafe_allow_html=True)
+
+if 'current_stage' not in st.session_state:
+    st.session_state.current_stage = 0
+if 'puzzle_states' not in st.session_state:
+    st.session_state.puzzle_states = {}
+if 'show_success' not in st.session_state:
+    st.session_state.show_success = False
+if 'guessed_letters' not in st.session_state:
+    st.session_state.guessed_letters = set()
+if 'attempts' not in st.session_state:
+    st.session_state.attempts = 0
+
+def load_lottie_url(url):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
 
 def compass_puzzle():
-    st.markdown("### 🧭 The Ancient Compass")
+    col1, col2 = st.columns([1, 1])
     
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(4, 4))
-    angle = st.slider("Rotate the compass", 0, 360, 0)
+    with col1:
+        raw_angle = st.slider("", -180, 180, 0, format="")
+        st.write("If you're headed two ticks to the left, you're not at your best.")
+        st.write("Avoid the mouth of the beast, and head south by south east.")
     
-    directions = ['N', 'E', 'S', 'W']
-    angles = np.deg2rad([90, 0, 270, 180])
+    with col2:
+        fig = plt.figure(figsize=(4, 4))
+        fig.patch.set_facecolor('none')
+        fig.patch.set_alpha(0.0)
+        ax = fig.add_subplot(111, projection='polar')
+        angle = (raw_angle) % 360
+        
+        # Create 32 lines for compass points (every 11.25 degrees)
+        angles = np.deg2rad(np.arange(0, 360, 11.25))
+        lengths = [1.3 if i % 8 == 0 else  # Main directions (N,E,S,W)
+                   1.1 if i % 4 == 0 else  # Intermediate directions (NE,SE,SW,NW)
+                   0.9 for i in range(32)]  # Minor marks
+        
+        # Draw the lines
+        for theta, length in zip(angles, lengths):
+            ax.plot([theta, theta], [0.7, length], color='#8b4513', linewidth=2 if length > 1.1 else 1)
+        
+        # Main direction labels
+        directions = ['N', 'E', 'S', 'W']
+        main_angles = np.deg2rad([0, 90, 180, 270])
+        for d, a in zip(directions, main_angles):
+            ax.text(a, 2.0, d, ha='center', va='center', fontsize=12, fontweight='bold', color='#462f03')
+        
+        ax.set_theta_direction(-1)
+        ax.set_theta_zero_location('N')
+        ax.grid(False)  # Removed the grid since we have our own lines now
+        ax.set_facecolor('#f5e6d3')
+        ax.set_xticks([])
+        
+        arrow_angle = np.deg2rad(angle)
+        ax.arrow(arrow_angle, 0, 0, 0.8, alpha=0.8, width=0.1, 
+                 head_width=0.2, head_length=0.2, fc='#8b4513', ec='#8b4513')
+        
+        ax.set_rticks([])
+        ax.set_rlim(0, 2.2)
+        plt.tight_layout()
+        st.pyplot(fig)
     
-    ax.set_theta_direction(-1)
-    ax.set_theta_zero_location('N')
-    ax.grid(True, alpha=0.3)
-    ax.set_facecolor('#f5e6d3')
-    
-    ax.scatter(angles, [1.3]*4, color='#8b4513')
-    for d, a in zip(directions, angles):
-        ax.text(a, 1.7, d, ha='center', va='center', fontsize=12, fontweight='bold', color='#462f03')
-    
-    arrow_angle = np.deg2rad(angle)
-    ax.arrow(arrow_angle, 0, 0, 0.8, alpha=0.8, width=0.1, 
-             head_width=0.2, head_length=0.2, fc='#8b4513', ec='#8b4513')
-    
-    ax.set_rticks([])
-    plt.tight_layout()
-    st.pyplot(fig)
-    
-    return angle == 42
+    return angle >= 157 and angle <= 158
 
 def constellation_puzzle():
-    st.markdown("### ⭐ Navigate by the Stars")
-    st.image("https://plus.unsplash.com/premium_photo-1721254059354-ae91139fdfef?q=80&w=3132&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="Ancient Star Chart", use_column_width=True)
-    st.write("The ancient mariners used these stars to guide their way home.")
-    stars_selected = st.multiselect(
-        "Select the stars of the Ancient Mariner's Path",
-        options=["Polaris", "Sirius", "Vega", "Antares", "Betelgeuse", "Rigel"]
-    )
-    return set(stars_selected) == {"Polaris", "Sirius", "Vega"}
+    st.write("Through mist and cloud and darkest night, which star outshines all else in sight? The brightest beacon in the dome, a faithful guide to lead you home.")
+    star_selected = st.selectbox("", options=[
+        "Polaris",
+        "Vega", 
+        "Antares",
+        "Betelgeuse",
+        "Rigel",
+        "Aldebaran", 
+        "Sirius",
+        "Arcturus"
+    ], index=None)
+    return star_selected == "Sirius"
 
 def sundial_puzzle():
-    st.markdown("### ☀️ The Mystical Sundial")
-    
     fig, ax = plt.subplots(figsize=(6, 6))
+    fig.patch.set_facecolor('none')
+    fig.patch.set_alpha(0.0)
     circle = plt.Circle((0.5, 0.5), 0.4, fill=False, color='#8b4513')
     ax.add_artist(circle)
     
-    for hour in range(1, 13):
-        angle = np.deg2rad(hour * 30 - 90)
-        x = 0.5 + 0.35 * np.cos(angle)
-        y = 0.5 + 0.35 * np.sin(angle)
-        ax.text(x, y, str(hour), ha='center', va='center', fontsize=12)
+    rotation = st.slider("", 0, 360, 0)
     
-    hour = st.number_input("Set the hour", 1, 12, 1)
-    minute = st.slider("Set the minute", 0, 59, 0)
+    angle = np.deg2rad(-rotation + 90)
     
-    angle = np.deg2rad((hour + minute/60) * 30 - 90)
     ax.plot([0.5, 0.5 + 0.3 * np.cos(angle)],
             [0.5, 0.5 + 0.3 * np.sin(angle)], 
             color='#8b4513', linewidth=2)
@@ -95,19 +122,28 @@ def sundial_puzzle():
     plt.tight_layout()
     st.pyplot(fig)
     
-    return hour == 7 and minute == 15
+    return rotation == 255
 
 def morse_code_puzzle():
-    st.markdown("### 📡 The Pirate's Code")
-    st.image("https://plus.unsplash.com/premium_photo-1667238624718-5c5d5deb6829?q=80&w=2737&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="Ancient Morse Code Chart", use_column_width=True)
-    message = ".--.  ..  .-.  .-  -  ."
-    st.write("A mysterious message has been intercepted:")
-    st.markdown(f"**{message}**")
-    answer = st.text_input("Your answer:").upper()
-    return answer == "PIRATE"
+    # Using 🔘 for dot, ⎯⎯ for dash
+    # Answer ".... --- .-. .. --.. --- -."
+    morse_message = {
+        'H': '🔘 🔘 🔘 🔘',
+        'O': '⸺ ⸺ ⸺',
+        'R': '🔘 ⸺ 🔘',
+        'I': '🔘 🔘',
+        'Z': '⸺ ⸺ 🔘 🔘',
+        'O': '⸺ ⸺ ⸺',
+        'N': '⸺ 🔘'
+    }
+    
+    for letter, code in morse_message.items():
+        st.write(f"{code}", end="")
+    
+    answer = st.text_input("").upper()
+    return answer == "HORIZON"
 
 def riddle_puzzle():
-    st.markdown("### 🤔 The Ancient Riddle")
     riddle = """
     I have cities, but no houses.
     I have mountains, but no trees.
@@ -116,99 +152,177 @@ def riddle_puzzle():
     What am I?
     """
     st.write(riddle)
-    st.image("https://images.unsplash.com/photo-1520299607509-dcd935f9a839?q=80&w=3131&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="An Old Parchment", use_column_width=True)
-    answer = st.text_input("Your answer:").lower()
+    answer = st.text_input("").lower()
     return answer == "map"
 
 def treasure_map_puzzle():
-    st.markdown("### 🗺️ The Treasure Map")
-    
     fig, ax = plt.subplots(figsize=(8, 8))
-    # map_img = plt.imread("https://images.unsplash.com/photo-1520299607509-dcd935f9a839")
-    # ax.imshow(map_img)
+    fig.patch.set_facecolor('none')
+    fig.patch.set_alpha(0.0)
+    url = "https://images.unsplash.com/photo-1577086664693-894d8405334a?q=80&w=3134&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    
+    with urllib.request.urlopen(url) as response:
+        map_img = np.array(Image.open(response))
+    
+    ax.imshow(map_img, extent=[0, 100, 0, 100])
+    ax.set_xticks([])  # Remove x-axis ticks
+    ax.set_yticks([])  # Remove y-axis ticks
     
     x = st.slider("X coordinate", 0, 100, 50)
     y = st.slider("Y coordinate", 0, 100, 50)
     
     ax.scatter(x, y, color='red', marker='x', s=100)
-    ax.grid(True, alpha=0.3)
     st.pyplot(fig)
     
-    return x == 73 and y == 27
+    return x == 16 and y == 18  # Straight of Gibraltar
 
-def cryptogram_puzzle():
-    st.markdown("### 🔒 The Captain's Cryptogram")
-    encrypted = "YZNFHZM GIZMFHIZ"
-    st.write("The captain left behind this encrypted message:")
-    st.markdown(f"**{encrypted}**")
-    answer = st.text_input("Decrypt the message:").upper()
-    return answer == "TREASURE LOCATION"
+def hangman_puzzle():
+    puzzle_name = "captain's quote"
+    if 'current_puzzle' not in st.session_state:
+        st.session_state.current_puzzle = None
+        
+    if st.session_state.current_puzzle != puzzle_name:
+        st.session_state.guessed_letters = set()
+        st.session_state.attempts = 0
+        st.session_state.current_puzzle = puzzle_name
+    
+    secret = "DEAD MEN TELL NO TALES"
+    max_attempts = 6
+    
+    display = ''.join(char if char == " " or char in st.session_state.guessed_letters else "_" for char in secret)
+    st.write(f"<h3>{display}</h3>", unsafe_allow_html=True)
+    
+    guess = st.text_input("", max_chars=1, key="guess_input").upper()
+    
+    if st.button("Submit", type="primary", key="guess_button"):
+        if guess and guess.isalpha() and len(guess) == 1 and guess not in st.session_state.guessed_letters:
+            st.session_state.guessed_letters.add(guess)
+            if guess not in secret:
+                st.session_state.attempts += 1
+                if st.session_state.attempts >= max_attempts:
+                    st.session_state.guessed_letters = set()
+                    st.session_state.attempts = 0
+            st.rerun()
 
-def flag_sequence_puzzle():
-    st.markdown("### 🏴‍☠️ The Pirate Flag Sequence")
-    st.image("https://images.unsplash.com/photo-1652447275071-4bf852aebdc5?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="Famous Pirate Flags", use_column_width=True)
-    st.write("Arrange these famous pirate flags in alphabetical order!")
-    flags = ["Jolly Roger", "Black Bart", "Calico Jack", "Edward England"]
-    sequence = st.multiselect("Select the flags in order:", flags)
-    correct_sequence = ["Black Bart", "Calico Jack", "Edward England", "Jolly Roger"]
-    return sequence == correct_sequence
+    st.write(f"Attempts remaining: {max_attempts - st.session_state.attempts}")
+    
+    incorrect_guesses = sorted([letter for letter in st.session_state.guessed_letters if letter not in secret])
+    if incorrect_guesses:
+        st.write(", ".join(incorrect_guesses))
+    
+    return all(char in st.session_state.guessed_letters or char == " " for char in secret)
+
+def chess_puzzle():
+    move, img = st.columns(2)
+    move.text_input("", max_chars=2).lower()
+    img.image("chessboard.png")
+    
+    return move == "d8"
 
 def knot_puzzle():
-    st.markdown("### ⚓ The Sailor's Knot")
-    st.image("https://images.unsplash.com/photo-1618588932782-d31006819d93?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", caption="Traditional Sailor's Knots", use_column_width=True)
     st.write("Every good sailor needs to know their knots!")
     knots = ["Bowline", "Clove Hitch", "Sheet Bend", "Figure Eight"]
-    selected_knot = st.selectbox("Select the knot that can create a fixed loop:", knots)
+    selected_knot = st.pills("Select the knot that can create a fixed loop:", knots)
     return selected_knot == "Bowline"
 
+def check_puzzle_state(puzzle_name):
+    if puzzle_name not in st.session_state.puzzle_states:
+        st.session_state.puzzle_states[puzzle_name] = {
+            'attempts': 0,
+            'solved': False
+        }
+    return st.session_state.puzzle_states[puzzle_name]
+
+def introduction_page():
+    st.markdown("### 📜 The Beginning of Your Journey")
+    st.markdown("<br>", unsafe_allow_html=True)  # Add space after title
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("""
+        <div style='padding: 25px; border: 2px solid #c0c0c0; border-radius: 10px; background-color: rgba(255,255,255,0.1);'>
+            <p style='text-align: center;'>Beyond this page lies a series of tests to determine the worthiest of pirates and treasure hunters.</p>
+            <p style='text-align: center;'>Trying to solve these alone will prove nigh impossible, but luckily, you have a mysterious friend helping you along the way.</p>
+            <p style='text-align: center;'>They've delivered a message to you using their trusty friend Hedwig.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)  # Add space before button
+    if st.button("Begin Your Adventure →"):
+        st.session_state.current_stage += 1
+        st.rerun()
+    return False
+
+def completion_page():
+    st.markdown("### 🎉 Journey's End - The Final Clue")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("""
+        <div style='padding: 25px; border: 2px solid #c0c0c0; border-radius: 10px; background-color: rgba(255,255,255,0.1);'>
+            <p style='text-align: center;'>Congratulations, brave adventurer! You've proven yourself worthy of the greatest treasure.</p>
+            <p style='text-align: center;'>The treasure lies where ancient walls meet Mediterranean waves...</p>
+            <p style='text-align: center;'>At the crossroads of two continents, where Hercules once stood.</p>
+            <p style='text-align: center;'>Seek the point where:</p>
+            <p style='text-align: center; font-weight: bold;'>36.7783° N, 3.0588° E</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.balloons()
+    return False
+
 def main():
-    st.title("🏴‍☠️ The Pirate's Lost Treasure")
+    st.title("🏴‍☠️ The Pirate Trials")
     
     stages = [
-        {"name": "The Compass Challenge", "func": compass_puzzle},
+        {"name": "Introduction", "func": introduction_page},      
+        {"name": "Ancient Riddle", "func": riddle_puzzle},         
+        {"name": "Morse Code", "func": morse_code_puzzle},         
+        {"name": "Compass Challenge", "func": compass_puzzle},     
         {"name": "Celestial Navigation", "func": constellation_puzzle},
-        {"name": "Time's Secret", "func": sundial_puzzle},
-        {"name": "The Morse Code", "func": morse_code_puzzle},
-        {"name": "The Ancient Riddle", "func": riddle_puzzle},
-        {"name": "The Treasure Map", "func": treasure_map_puzzle},
-        {"name": "The Captain's Cryptogram", "func": cryptogram_puzzle},
-        {"name": "The Flag Sequence", "func": flag_sequence_puzzle},
-        {"name": "The Sailor's Knot", "func": knot_puzzle}
+        {"name": "Captain's Quote", "func": hangman_puzzle},
+        {"name": "A Game of Kings", "func": chess_puzzle},   
+        {"name": "Time's Secret", "func": sundial_puzzle},        
+        {"name": "Sailor's Knot", "func": knot_puzzle},           
+        {"name": "Treasure Map", "func": treasure_map_puzzle},
+        {"name": "Final Revelation", "func": completion_page}      # Added completion stage
     ]
     
     with st.sidebar:
-        st.markdown('<div class="log-container">', unsafe_allow_html=True)
         st.markdown("### 📜 Captain's Log")
         st.write(f"Current Challenge: {stages[min(st.session_state.current_stage, len(stages)-1)]['name']}")
-        st.write(f"Challenges Completed: {st.session_state.current_stage}/{len(stages)}")
-        st.markdown('</div>', unsafe_allow_html=True)
-        
+        st.write(f"Challenges Completed: {st.session_state.current_stage}/{len(stages)-1}")  # Subtract 1 to not count intro
         st.markdown("---")
-        admin_expander = st.expander("🔑 Admin Mode")
-        with admin_expander:
-            password = st.text_input("Password:", type="password")
-            if password == "admin":
-                st.write("Select a puzzle to jump to:")
-                cols = st.columns(3)
-                for i, stage in enumerate(stages):
-                    with cols[i % 3]:
-                        if st.button(f"Puzzle {i+1}"):
-                            st.session_state.current_stage = i
-                            st.rerun()
-    
-    if st.session_state.current_stage >= len(stages):
-        st.success("🎉 Congratulations! You've found the treasure!")
-        st.balloons()
-        return
+        st.write("Select a page to jump to:")
+        cols = st.columns(3)
+        for i, stage in enumerate(stages):
+            if st.button(f"{stage['name']}", key=f"stage_{i}"):
+                st.session_state.current_stage = i
+                st.rerun()
     
     st.progress(st.session_state.current_stage / len(stages))
+    st.markdown("<br>", unsafe_allow_html=True)  # Add space after progress bar
+    
     current_stage = stages[st.session_state.current_stage]
     
     if current_stage["func"]():
-        st.success("Well done, matey!")
-        if st.button("Sail to next challenge"):
+        if not st.session_state.show_success:
+            st.session_state.show_success = True
+            st.rerun()
+        
+        success_animation = load_lottie_url("https://lottie.host/68f642f5-1647-4be8-bf16-9d0667a249d1/gneIjMUkMM.json")
+        if success_animation:
+            st_lottie(success_animation, height=200, key="success")
+        
+        st.success(f"You've completed {current_stage['name']}.")
+        
+        if st.button("Continue to Next Challenge →"):
+            st.session_state.show_success = False
             st.session_state.current_stage += 1
             st.rerun()
+    else:
+        st.session_state.show_success = False
 
 if __name__ == "__main__":
     main()
