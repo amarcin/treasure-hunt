@@ -138,7 +138,7 @@ def morse_code_puzzle():
     }
     
     for letter, code in morse_message.items():
-        st.write(f"{code}", end="")
+        st.write(f"{code}", end=" ")
     
     answer = st.text_input("").upper()
     return answer == "HORIZON"
