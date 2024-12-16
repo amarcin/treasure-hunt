@@ -292,7 +292,7 @@ def main():
     with st.sidebar:
         st.markdown("### 📜 Captain's Log")
         st.write(f"Current Challenge: {stages[min(st.session_state.current_stage, len(stages)-1)]['name']}")
-        st.write(f"Challenges Completed: {st.session_state.current_stage}/{len(stages)-1}")  # Subtract 1 to not count intro
+        st.write(f"Challenges Completed: {max(0, st.session_state.current_stage-1)}/{len(stages)-2}")  # Subtract 1 to not count intro/conclusion
         st.markdown("---")
         st.write("Select a page to jump to:")
         cols = st.columns(3)
