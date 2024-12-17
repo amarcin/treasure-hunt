@@ -1,3 +1,4 @@
+import datetime
 import random
 import streamlit as st
 import numpy as np
@@ -108,21 +109,33 @@ def sundial_puzzle():
     circle = plt.Circle((0.5, 0.5), 0.4, fill=False, color='#8b4513')
     ax.add_artist(circle)
     
-    rotation = st.slider("", 0, 360, 0)
+    col1, col2 = st.columns(2)
     
-    angle = np.deg2rad(-rotation + 90)
+    hours = col1.slider("", 1, 12, 12)
+    minutes = col1.slider("", 0, 59, 0)
     
-    ax.plot([0.5, 0.5 + 0.3 * np.cos(angle)],
-            [0.5, 0.5 + 0.3 * np.sin(angle)], 
+    minute_angle = np.deg2rad(-minutes * 6 + 90)
+    hour_angle = np.deg2rad(-(hours * 30 + minutes * 0.5) + 90)
+    
+    ax.plot([0.5, 0.5 + 0.3 * np.cos(minute_angle)],
+            [0.5, 0.5 + 0.3 * np.sin(minute_angle)], 
+            color='#8b4513', linewidth=2)
+            
+    ax.plot([0.5, 0.5 + 0.25 * np.cos(hour_angle)],
+            [0.5, 0.5 + 0.25 * np.sin(hour_angle)], 
             color='#8b4513', linewidth=2)
     
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis('off')
     plt.tight_layout()
-    st.pyplot(fig)
     
-    return rotation == 255
+    col2.pyplot(fig)
+    
+    current_time = datetime.datetime.now()
+    current_hour = current_time.hour % 12 or 12  # Convert 24h to 12h format
+    current_minute = current_time.minute
+    return minutes == current_minute and hours == current_hour
 
 def morse_code_puzzle():
     # Using 🔘 for dot, ⎯⎯ for dash
@@ -156,6 +169,18 @@ def riddle_puzzle():
     return answer == "map"
 
 def treasure_map_puzzle():
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col1:
+        st.write("")
+    with col2:
+        st.write("Twelve labors did he undertake, with strength innate")
+        st.write("As penance for crimes committed by fate")
+        st.write("Why cross the range of Atlas, when you can split the mountain gate?")
+        st.write("Seek the pillars, and sail Strait.")
+    with col3:
+        st.write("")
+
     fig, ax = plt.subplots(figsize=(8, 8))
     fig.patch.set_facecolor('none')
     fig.patch.set_alpha(0.0)
@@ -165,16 +190,15 @@ def treasure_map_puzzle():
         map_img = np.array(Image.open(response))
     
     ax.imshow(map_img, extent=[0, 100, 0, 100])
-    ax.set_xticks([])  # Remove x-axis ticks
-    ax.set_yticks([])  # Remove y-axis ticks
     
-    x = st.slider("X coordinate", 0, 100, 50)
-    y = st.slider("Y coordinate", 0, 100, 50)
+    x = st.slider("", 0, 100, 50, format="", key="x_coord")
+    y = st.slider("", 0, 100, 50, format="", key="y_coord")
     
     ax.scatter(x, y, color='red', marker='x', s=100)
+    
     st.pyplot(fig)
     
-    return x == 16 and y == 18  # Straight of Gibraltar
+    return (15 <= x <= 17) and (17 <= y <= 19) 
 
 def hangman_puzzle():
     puzzle_name = "captain's quote"
@@ -214,16 +238,36 @@ def hangman_puzzle():
 
 def chess_puzzle():
     move, img = st.columns(2)
-    move.text_input("", max_chars=2).lower()
-    img.image("chessboard.png")
+    user_move = move.text_input("", max_chars=2).lower()
+    img.image("imgs/chessboard.png")
     
-    return move == "d8"
+    return user_move == "d8"
 
 def knot_puzzle():
-    st.write("Every good sailor needs to know their knots!")
+    col1, col2, col3, col4 = st.columns(4)
+    cols = [col1, col2, col3, col4]
+    
     knots = ["Bowline", "Clove Hitch", "Sheet Bend", "Figure Eight"]
-    selected_knot = st.pills("Select the knot that can create a fixed loop:", knots)
-    return selected_knot == "Bowline"
+    
+    matches = {}
+    for i, col in enumerate(cols):
+        col.image(f"imgs/{knots[i].lower().replace(' ', '')}.png")
+        matches[i] = col.selectbox(f"", ["", "Bowline", "Clove Hitch", "Sheet Bend", "Figure Eight"], key=f"knot_{i}")
+    
+    correct_matches = all(matches[i] == knots[i] for i in range(4))
+    
+    col1, col2 = st.columns([3,1])
+    with col1:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.write("Aboard the ship, swabbing the deck")
+        st.write("Creak in the ship, crick in your neck")
+        st.write("Too busy working, you've missed the view")
+        st.write("Which knot will let you fix the loop?")
+        selected_knot = st.pills("", ["Sheet Bend", "Figure Eight", "Clove Hitch", "Bowline"])
+
+    col2.image("imgs/ship.png")
+
+    return correct_matches and selected_knot == "Bowline"
 
 def check_puzzle_state(puzzle_name):
     if puzzle_name not in st.session_state.puzzle_states:
@@ -234,38 +278,35 @@ def check_puzzle_state(puzzle_name):
     return st.session_state.puzzle_states[puzzle_name]
 
 def introduction_page():
-    st.markdown("### 📜 The Beginning of Your Journey")
-    st.markdown("<br>", unsafe_allow_html=True)  # Add space after title
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("""
         <div style='padding: 25px; border: 2px solid #c0c0c0; border-radius: 10px; background-color: rgba(255,255,255,0.1);'>
             <p style='text-align: center;'>Beyond this page lies a series of tests to determine the worthiest of pirates and treasure hunters.</p>
-            <p style='text-align: center;'>Trying to solve these alone will prove nigh impossible, but luckily, you have a mysterious friend helping you along the way.</p>
-            <p style='text-align: center;'>They've delivered a message to you using their trusty friend Hedwig.</p>
+            <p style='text-align: center;'>Stay sharp, and keep your wits about you.</p>
+            <p style='text-align: center;'>Enjoy the journey.</p>
         </div>
         """, unsafe_allow_html=True)
     
-    st.markdown("<br>", unsafe_allow_html=True)  # Add space before button
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Begin Your Adventure →"):
         st.session_state.current_stage += 1
         st.rerun()
     return False
 
 def completion_page():
-    st.markdown("### 🎉 Journey's End - The Final Clue")
     st.markdown("<br>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("""
         <div style='padding: 25px; border: 2px solid #c0c0c0; border-radius: 10px; background-color: rgba(255,255,255,0.1);'>
-            <p style='text-align: center;'>Congratulations, brave adventurer! You've proven yourself worthy of the greatest treasure.</p>
-            <p style='text-align: center;'>The treasure lies where ancient walls meet Mediterranean waves...</p>
-            <p style='text-align: center;'>At the crossroads of two continents, where Hercules once stood.</p>
-            <p style='text-align: center;'>Seek the point where:</p>
-            <p style='text-align: center; font-weight: bold;'>36.7783° N, 3.0588° E</p>
+            <p style='text-align: center;'>Congratulations</p>
+            <p style='text-align: center;'>Final Clue goes here.</p>
+            <p style='text-align: center;'> TBD.</p>
+            <p style='text-align: center;'></p>
+            <p style='text-align: center; font-weight: bold;'></p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -301,8 +342,8 @@ def main():
                 st.session_state.current_stage = i
                 st.rerun()
     
-    st.progress(st.session_state.current_stage / len(stages))
-    st.markdown("<br>", unsafe_allow_html=True)  # Add space after progress bar
+    st.progress(min(1.0, st.session_state.current_stage / (len(stages) - 1)))
+    st.markdown("<br>", unsafe_allow_html=True)
     
     current_stage = stages[st.session_state.current_stage]
     
@@ -317,7 +358,7 @@ def main():
         
         st.success(f"You've completed {current_stage['name']}.")
         
-        if st.button("Continue to Next Challenge →"):
+        if st.button("Continue →"):
             st.session_state.show_success = False
             st.session_state.current_stage += 1
             st.rerun()
