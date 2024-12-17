@@ -191,6 +191,10 @@ def treasure_map_puzzle():
     
     ax.imshow(map_img, extent=[0, 100, 0, 100])
     
+    # Remove tick marks and numbers from x and y axes
+    ax.set_xticks([])  # Remove x-axis ticks
+    ax.set_yticks([])  # Remove y-axis ticks
+    
     x = st.slider("", 0, 100, 50, format="", key="x_coord")
     y = st.slider("", 0, 100, 50, format="", key="y_coord")
     
