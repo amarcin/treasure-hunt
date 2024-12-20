@@ -86,23 +86,23 @@ def compass_puzzle():
         plt.tight_layout()
         st.pyplot(fig)
     
-    return angle >= 157 and angle <= 158
+    return angle >= 150 and angle <= 165
 
 def constellation_puzzle():
-    st.write("Through mist and cloud and darkest night, which star outshines all else in sight? The brightest beacon in the dome, a faithful guide to lead you home.")
+    st.write("One star to rule them all, one way to find it, one path to bring you all and in the darkness arrive home; in the Land of Pirates where the thieves lie. Seek the cardinal star.")
     star_selected = st.selectbox("", options=[
-        "Polaris",
-        "Vega", 
+        "Aldebaran",
         "Antares",
+        "Arcturus",
         "Betelgeuse",
+        "Polaris",
         "Rigel",
-        "Aldebaran", 
         "Sirius",
-        "Arcturus"
+        "Vega"
     ], index=None)
-    return star_selected == "Sirius"
+    return star_selected == "Polaris"
 
-def sundial_puzzle():
+def clock_puzzle():
     fig, ax = plt.subplots(figsize=(6, 6))
     fig.patch.set_facecolor('none')
     fig.patch.set_alpha(0.0)
@@ -138,19 +138,17 @@ def sundial_puzzle():
     return minutes == current_minute and hours == current_hour
 
 def morse_code_puzzle():
-    # Using 🔘 for dot, ⎯⎯ for dash
-    # Answer ".... --- .-. .. --.. --- -."
-    morse_message = {
-        'H': '🔘 🔘 🔘 🔘',
-        'O': '⸺ ⸺ ⸺',
-        'R': '🔘 ⸺ 🔘',
-        'I': '🔘 🔘',
-        'Z': '⸺ ⸺ 🔘 🔘',
-        'O': '⸺ ⸺ ⸺',
-        'N': '⸺ 🔘'
-    }
+    morse_message = [
+        ('H', '🔘 🔘 🔘 🔘'),
+        ('O', '⸺ ⸺ ⸺'),
+        ('R', '🔘 ⸺ 🔘'),
+        ('I', '🔘 🔘'),
+        ('Z', '⸺ ⸺ 🔘 🔘'),
+        ('O', '⸺ ⸺ ⸺'),
+        ('N', '⸺ 🔘')
+    ]
     
-    for letter, code in morse_message.items():
+    for letter, code in morse_message:
         st.write(f"{code}", end=" ")
     
     answer = st.text_input("").upper()
@@ -215,12 +213,12 @@ def hangman_puzzle():
         st.session_state.current_puzzle = puzzle_name
     
     secret = "DEAD MEN TELL NO TALES"
-    max_attempts = 6
+    max_attempts = 5
     
     display = ''.join(char if char == " " or char in st.session_state.guessed_letters else "_" for char in secret)
-    st.write(f"<h3>{display}</h3>", unsafe_allow_html=True)
+    st.write(f"<h1>{display}</h1>", unsafe_allow_html=True)
     
-    guess = st.text_input("", max_chars=1, key="guess_input").upper()
+    guess = st.text_input("", max_chars=1, key="guess_input", help="The Enter key doesn't work here, click the Submit button (sometimes multiple times) for your attempts").upper()
     
     if st.button("Submit", type="primary", key="guess_button"):
         if guess and guess.isalpha() and len(guess) == 1 and guess not in st.session_state.guessed_letters:
@@ -323,12 +321,12 @@ def main():
     stages = [
         {"name": "Introduction", "func": introduction_page},      
         {"name": "Ancient Riddle", "func": riddle_puzzle},         
-        {"name": "Morse Code", "func": morse_code_puzzle},         
+        {"name": "Three Dots and a Dash", "func": morse_code_puzzle},         
         {"name": "Compass Challenge", "func": compass_puzzle},     
         {"name": "Celestial Navigation", "func": constellation_puzzle},
         {"name": "Captain's Quote", "func": hangman_puzzle},
         {"name": "A Game of Kings", "func": chess_puzzle},   
-        {"name": "Time's Secret", "func": sundial_puzzle},        
+        {"name": "Time's Secret", "func": clock_puzzle},        
         {"name": "Sailor's Knot", "func": knot_puzzle},           
         {"name": "Treasure Map", "func": treasure_map_puzzle},
         {"name": "Final Revelation", "func": completion_page}      # Added completion stage
