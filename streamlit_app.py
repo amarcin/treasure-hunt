@@ -135,7 +135,7 @@ def clock_puzzle():
     current_time = datetime.datetime.now()
     current_hour = current_time.hour % 12 or 12  # Convert 24h to 12h format
     current_minute = current_time.minute
-    current_hour_in_pst = current_hour + 8
+    current_hour_in_pst = current_hour + 4
 
     st.write(f"Current time registered: {current_hour}:{current_minute}")
     st.write(f"Current calculated time in PST: {current_hour_in_pst}:{current_minute}")
