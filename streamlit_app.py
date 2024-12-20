@@ -135,6 +135,8 @@ def clock_puzzle():
     current_time = datetime.datetime.now()
     current_hour = current_time.hour % 12 or 12  # Convert 24h to 12h format
     current_minute = current_time.minute
+
+    st.write(f"Current time: {current_hour}:{current_minute}")
     return minutes == current_minute and hours == current_hour
 
 def morse_code_puzzle():
