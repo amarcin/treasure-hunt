@@ -239,7 +239,7 @@ def hangman_puzzle():
                     st.session_state.attempts = 0
             st.rerun()
 
-    st.write(f"Attempts remaining: {max_attempts - st.session_state.attempts}")
+    st.write(f"Failed attempts remaining: {max_attempts - st.session_state.attempts}")
     
     incorrect_guesses = sorted([letter for letter in st.session_state.guessed_letters if letter not in secret])
     if incorrect_guesses:
@@ -275,7 +275,7 @@ def knot_puzzle():
         st.write("It's a good thing clove hitches are easy to tie")
         st.write("Only one of thse is good to hang on a sloop")
         st.write("With the uncanny ability to make a perfectly fixed loop")
-        
+
         selected_knot = st.pills("", ["Sheet Bend", "Figure Eight", "Clove Hitch", "Bowline"])
 
     col2.image("imgs/ship.png")
