@@ -111,6 +111,8 @@ def clock_puzzle():
     
     col1, col2 = st.columns(2)
     
+    col1.write("Yesterday is history, tomorrow is a mystery")
+    col1.write("But today is a gift, that's why it's called the present")
     hours = col1.slider("", 1, 12, 12)
     minutes = col1.slider("", 0, 59, 0)
     
