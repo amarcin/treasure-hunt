@@ -211,7 +211,7 @@ def treasure_map_puzzle():
     
     st.pyplot(fig)
     
-    return (15 <= x <= 17) and (17 <= y <= 19) 
+    return (13 <= x <= 19) and (15 <= y <= 21) 
 
 def hangman_puzzle():
     puzzle_name = "captain's quote"
