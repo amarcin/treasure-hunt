@@ -140,7 +140,7 @@ def clock_puzzle():
     st.write(f"Current time registered: {current_hour}:{current_minute}")
     st.write(f"Current calculated time in PST: {current_hour_in_pst}:{current_minute}")
     st.write(datetime.datetime.now())
-    return minutes == current_minute and hours == current_hour_in_pst
+    return abs(minutes - current_minute) <= 1 and hours == current_hour_in_pst
 
 def morse_code_puzzle():
     morse_message = [
