@@ -275,8 +275,8 @@ def knot_puzzle():
 
         st.write("Figure eights and sheet bends look awfully alike")
         st.write("It's a good thing clove hitches are easy to tie")
-        st.write("Only one of thse is good to hang on a sloop")
-        st.write("With the uncanny ability to make a perfectly fixed loop")
+        st.write("Which of these is good to hang on a sloop?")
+        st.write("With the uncanny ability to make a perfectly fixed loop?")
 
         selected_knot = st.pills("", ["Sheet Bend", "Figure Eight", "Clove Hitch", "Bowline"])
 
