@@ -135,11 +135,15 @@ def clock_puzzle():
     current_time = datetime.datetime.now()
     current_hour = current_time.hour % 12 or 12  # Convert 24h to 12h format
     current_minute = current_time.minute
-    current_hour_in_pst = current_hour + 4
+    current_hour_in_pst = (current_hour + 4) % 12 or 12  # Adjust for 12h format
 
-    st.write(f"Current time registered: {current_hour}:{current_minute}")
-    st.write(f"Current calculated time in PST: {current_hour_in_pst}:{current_minute}")
-    st.write(datetime.datetime.now())
+    st.components.v1.html(f"""
+        <script>
+            console.log("Current time registered: {current_hour}:{current_minute}");
+            console.log("Current calculated time in PST: {current_hour_in_pst}:{current_minute}");
+            console.log("{datetime.datetime.now()}");
+        </script>
+    """, height=0)
     return abs(minutes - current_minute) <= 1 and hours == current_hour_in_pst
 
 def morse_code_puzzle():
@@ -266,10 +270,12 @@ def knot_puzzle():
     col1, col2 = st.columns([3,1])
     with col1:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.write("Aboard the ship, swabbing the deck")
-        st.write("Creak in the ship, crick in your neck")
-        st.write("Too busy working, you've missed the view")
-        st.write("Which knot will let you fix the loop?")
+
+        st.write("Figure eights and sheet bends look awfully alike")
+        st.write("It's a good thing clove hitches are easy to tie")
+        st.write("Only one of thse is good to hang on a sloop")
+        st.write("With the uncanny ability to make a perfectly fixed loop")
+        
         selected_knot = st.pills("", ["Sheet Bend", "Figure Eight", "Clove Hitch", "Bowline"])
 
     col2.image("imgs/ship.png")
