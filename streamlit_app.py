@@ -89,7 +89,12 @@ def compass_puzzle():
     return angle >= 150 and angle <= 165
 
 def constellation_puzzle():
-    st.write("One star to rule them all, one way to find it, one path to bring you all and in the darkness arrive home; in the Land of Pirates where the thieves lie. Seek the cardinal star.")
+    st.write("Carry on, my wayward child. Return home and be celebrated, no matter how prodigal.")
+    st.write("Only one can show you the way.")
+    st.write("It's not the brightest, like Sirius, marking the end of the season of summer and the dog days.")
+    st.write("It's not the red supergiant Betelgeuse, marked in the sky by the great hero Orion.")
+    st.write("It is cardinal. It points true. It never falters nor wavers, for it is always guiding you.")
+
     star_selected = st.selectbox("", options=[
         "Aldebaran",
         "Antares",
@@ -111,8 +116,8 @@ def clock_puzzle():
     
     col1, col2 = st.columns(2)
     
-    col1.write("Yesterday is history, tomorrow is a mystery")
-    col1.write("But today is a gift, that's why it's called the present")
+    col1.write("Jack be nimble, jack be quick.")
+    col1.write("If your goal is to progress, know the answer never rests.")
     hours = col1.slider("", 1, 12, 12)
     minutes = col1.slider("", 0, 59, 0)
     
@@ -229,7 +234,7 @@ def hangman_puzzle():
     display = ''.join(char if char == " " or char in st.session_state.guessed_letters else "_" for char in secret)
     st.write(f"<h1>{display}</h1>", unsafe_allow_html=True)
     
-    guess = st.text_input("", max_chars=1, key="guess_input", help="The Enter key doesn't work here, click the Submit button (sometimes multiple times) for your attempts").upper()
+    guess = st.text_input("", max_chars=1, key="guess_input", help="The Enter key doesn't work here, click the Submit button a few times for your attempts").upper()
     
     if st.button("Submit", type="primary", key="guess_button"):
         if guess and guess.isalpha() and len(guess) == 1 and guess not in st.session_state.guessed_letters:
@@ -241,7 +246,7 @@ def hangman_puzzle():
                     st.session_state.attempts = 0
             st.rerun()
 
-    st.write(f"Failed attempts remaining: {max_attempts - st.session_state.attempts}")
+    st.write(f"Lives remaining: {max_attempts - st.session_state.attempts}")
     
     incorrect_guesses = sorted([letter for letter in st.session_state.guessed_letters if letter not in secret])
     if incorrect_guesses:
@@ -317,10 +322,10 @@ def completion_page():
     with col2:
         st.markdown("""
         <div style='padding: 25px; border: 2px solid #c0c0c0; border-radius: 10px; background-color: rgba(255,255,255,0.1);'>
-            <p style='text-align: center;'>Congratulations</p>
-            <p style='text-align: center;'>Final Clue goes here.</p>
-            <p style='text-align: center;'> TBD.</p>
-            <p style='text-align: center;'></p>
+            <p style='text-align: center;'>Congratulations hunters, your worthiness is proven.</p>
+            <p style='text-align: center;'>Let the hunt begin, you best get moving.</p>
+            <p style='text-align: center;'>There is one you must seek to guide your feet.</p>
+            <p style='text-align: center;'>He lives in peace, on 42nd street.</p>
             <p style='text-align: center; font-weight: bold;'></p>
         </div>
         """, unsafe_allow_html=True)
