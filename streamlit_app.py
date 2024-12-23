@@ -155,30 +155,29 @@ def clock_puzzle():
 
 def morse_code_puzzle():
     morse_message = [
-        ('H', '🔘 🔘 🔘 🔘'),
-        ('O', '⸺ ⸺ ⸺'),
-        ('R', '🔘 ⸺ 🔘'),
-        ('I', '🔘 🔘'),
-        ('Z', '⸺ ⸺ 🔘 🔘'),
-        ('O', '⸺ ⸺ ⸺'),
-        ('N', '⸺ 🔘')
+        ('H', '. . . .'),
+        ('O', '_ _ _'),
+        ('R', '. _ .'),
+        ('I', '. .'),
+        ('Z', '_ _ . .'),
+        ('O', '_ _ _'),
+        ('N', '_ .')
     ]
     
-    for letter, code in morse_message:
-        st.write(f"{code}", end=" ")
+    morse_display = '<br>'.join(code for _, code in morse_message)
+    st.markdown(f"<h1>{morse_display}</h1>", unsafe_allow_html=True)
     
     answer = st.text_input("").upper()
     return answer == "HORIZON"
 
 def riddle_puzzle():
-    riddle = """
-    I have cities, but no houses.
-    I have mountains, but no trees.
-    I have water, but no fish.
-    I have roads, but no cars.
+    st.markdown("""
+    I have cities, but no houses.  
+    I have mountains, but no trees.  
+    I have water, but no fish.  
+    I have roads, but no cars.  
     What am I?
-    """
-    st.write(riddle)
+    """)
     answer = st.text_input("").lower()
     return answer == "map"
 
@@ -359,12 +358,16 @@ def main():
         st.write(f"Current Challenge: {stages[min(st.session_state.current_stage, len(stages)-1)]['name']}")
         st.write(f"Challenges Completed: {max(0, st.session_state.current_stage-1)}/{len(stages)-2}")  # Subtract 1 to not count intro/conclusion
         st.markdown("---")
-        st.write("Select a page to jump to:")
-        cols = st.columns(3)
-        for i, stage in enumerate(stages):
-            if st.button(f"{stage['name']}", key=f"stage_{i}"):
-                st.session_state.current_stage = i
-                st.rerun()
+        
+        if st.checkbox("Administrator Mode", value=False, key="show_admin"):
+            admin_password = st.text_input(" ")
+            if admin_password == "spectrum": 
+                st.write("Select a page to jump to:")
+                cols = st.columns(3)
+                for i, stage in enumerate(stages):
+                    if st.button(f"{stage['name']}", key=f"stage_{i}"):
+                        st.session_state.current_stage = i
+                        st.rerun()
     
     st.progress(min(1.0, st.session_state.current_stage / (len(stages) - 1)))
     st.markdown("<br>", unsafe_allow_html=True)
