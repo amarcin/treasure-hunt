@@ -306,6 +306,8 @@ def introduction_page():
             <p style='text-align: center;'>Beyond this page lies a series of tests to determine the worthiest of pirates and treasure hunters.</p>
             <p style='text-align: center;'>Stay sharp, and keep your wits about you.</p>
             <p style='text-align: center;'>Enjoy the journey.</p>
+            <p style='text-align: center;'></p>
+            <p style='text-align: center;'>Oh, and be careful. Most clues are there to help you, but pirates are duplicitous creatures.</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -326,6 +328,8 @@ def completion_page():
             <p style='text-align: center;'>Let the hunt begin, you best get moving.</p>
             <p style='text-align: center;'>There is one you must seek to guide your feet.</p>
             <p style='text-align: center;'>He lives in peace, on 42nd street.</p>
+            <p style='text-align: center;'></p>
+            <p style='text-align: center;'>Oh, and don't forget the key.</p>
             <p style='text-align: center; font-weight: bold;'></p>
         </div>
         """, unsafe_allow_html=True)
