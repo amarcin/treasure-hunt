@@ -360,8 +360,8 @@ def main():
         st.markdown("---")
         
         if st.checkbox("Administrator Mode", value=False, key="show_admin"):
-            admin_password = st.text_input(" ")
-            if admin_password == "spectrum": 
+            admin_password = st.text_input("", type="password", key="admin_password")
+            if admin_password == "spectrum12": 
                 st.write("Select a page to jump to:")
                 cols = st.columns(3)
                 for i, stage in enumerate(stages):
