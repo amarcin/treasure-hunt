@@ -361,7 +361,7 @@ def main():
         
         if st.checkbox("Administrator Mode", value=False, key="show_admin"):
             admin_password = st.text_input("", type="password", key="admin_password")
-            if admin_password == "spectrum12": 
+            if admin_password == "admin": 
                 st.write("Select a page to jump to:")
                 cols = st.columns(3)
                 for i, stage in enumerate(stages):
